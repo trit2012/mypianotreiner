@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#16130f">
+<title>Тренажёры · Фортепиано</title>
+<style>
+:root{--bg:#16130f;--card:#211d18;--card2:#2a251f;--line:#3a332b;--text:#f3ece2;--muted:#a89c8d;--dim:#76695b;--accent:#e8b65a;--ink:#1c1609;--ok:#7fc59a;--warn:#e78a6a;--paper:#f6f0e4}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#app{max-width:560px;margin:0 auto;padding:max(14px,env(safe-area-inset-top)) 16px max(28px,env(safe-area-inset-bottom))}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+input,select{font:inherit;color:var(--text);background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;width:100%;font-size:16px}
+h1{font-size:26px;margin:2px 0 0;font-weight:800}
+h2{font-size:17px;margin:22px 0 10px;font-weight:700}
+.eyebrow{font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.muted{color:var(--muted)}.small{font-size:14px;line-height:1.45}
+.card{background:var(--card);border-radius:18px;padding:16px}
+.screen{display:none}.screen.on{display:block}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;min-height:38px}
+.back{font-size:15px;color:var(--muted);font-weight:600;padding:8px 0}
+.conn{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);background:var(--card);padding:8px 12px;border-radius:99px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--dim);flex:none}
+.dot.ok{background:var(--ok)}.dot.bad{background:var(--warn)}
+.btn{display:block;width:100%;padding:16px;border-radius:14px;background:var(--card2);font-weight:700;font-size:17px;margin-top:12px;text-align:center}
+.btn.primary{background:var(--accent);color:var(--ink)}
+.btn.rec{background:var(--warn);color:#fff}
+.btn:disabled{opacity:.4}
+.link{color:var(--accent);text-decoration:underline;font-size:14px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.tile{background:var(--card);border-radius:18px;padding:16px 14px;text-align:left;min-height:116px;display:flex;flex-direction:column;justify-content:space-between}
+.tile .ic{font-size:26px}
+.tile b{display:block;font-size:16.5px;margin-top:10px}
+.tile span{font-size:13px;color:var(--muted);line-height:1.35}
+.tile.soon{opacity:.45}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{padding:10px 14px;border-radius:12px;background:var(--card);border:2px solid transparent;font-weight:600;font-size:15px;text-align:left}
+.chips button small{display:block;font-weight:500;color:var(--muted);font-size:12.5px;margin-top:2px}
+.chips button.on{border-color:var(--accent)}
+.seg{display:flex;background:var(--card);border-radius:12px;padding:3px}
+.seg button{flex:1;padding:10px 6px;border-radius:9px;font-weight:600;color:var(--muted);font-size:15px}
+.seg button.on{background:var(--card2);color:var(--text)}
+.field{margin-top:12px}.field label{display:block;font-size:13.5px;color:var(--muted);margin-bottom:6px}
+.list .r{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line);font-size:15px}
+.list .r:first-child{border-top:0}
+.list .r span:last-child{color:var(--muted);font-variant-numeric:tabular-nums;text-align:right}
+.big{font-size:48px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.kpi{background:var(--card);border-radius:16px;padding:14px}
+.kpi span{font-size:13px;color:var(--muted)}
+.kpi b{display:block;font-size:24px;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi i{display:block;font-style:normal;font-size:12.5px;color:var(--muted);margin-top:2px}
+.verdict{display:inline-block;font-size:13px;font-weight:700;padding:3px 9px;border-radius:8px;background:var(--card2);margin-top:6px}
+.verdict.good{color:var(--ok)}.verdict.mid{color:var(--accent)}.verdict.bad{color:var(--warn)}
+.bar{height:5px;border-radius:3px;background:var(--line);margin:10px 0 18px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+.staffwrap{background:var(--paper);border-radius:22px;padding:8px 6px;transition:box-shadow .15s}
+.staffwrap.good{box-shadow:0 0 0 4px var(--ok)}.staffwrap.bad{box-shadow:0 0 0 4px var(--warn)}
+.staffwrap svg{display:block;width:100%;height:auto}
+.fb{min-height:64px;text-align:center;margin-top:16px;font-size:18px;font-weight:700}
+.fb .sub{display:block;font-size:14px;color:var(--muted);font-weight:500;margin-top:4px}
+.live{text-align:center;padding:26px 10px}
+.live .num{font-size:56px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.live .lbl{color:var(--muted);font-size:14px;margin-top:6px}
+.notes-strip{font-size:15px;color:var(--muted);min-height:22px;margin-top:12px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pedalbox{display:flex;gap:10px;justify-content:center;margin-top:16px}
+.pill{padding:8px 14px;border-radius:12px;background:var(--card2);font-weight:700;font-size:15px}
+.pill.on{background:var(--accent);color:var(--ink)}
+.chordnow{font-size:40px;font-weight:800;text-align:center;margin-top:10px}
+.chart svg{display:block;width:100%;height:auto}
+textarea.copy{width:100%;min-height:90px;margin-top:10px;background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;font-size:14px;line-height:1.4;resize:vertical}
+.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#000d;color:#fff;padding:11px 16px;border-radius:12px;font-size:14.5px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;text-align:center;z-index:9}
+.toast.on{opacity:1}
+.sync{font-size:13px;color:var(--muted);margin-top:10px;text-align:center}
+.hint{font-size:13.5px;color:var(--dim);text-align:center;margin-top:8px}
+.danger{color:var(--warn)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- HOME -->
+<section class="screen on" id="home">
+  <div class="topbar"><div><div class="eyebrow">Фортепиано</div><h1>Тренажёры</h1></div><button class="conn" id="connChip"><span class="dot" id="connDot"></span><span id="connText">Подключить</span></button></div>
+  <div class="card small" id="connCard"><b id="connTitle">Пианино не подключено</b><div class="muted" id="connSub" style="margin-top:4px">Подключите переходник, включите пианино и нажмите «Подключить».</div>
+    <button class="btn primary" id="connectBtn">Подключить пианино</button></div>
+  <div class="tiles">
+    <button class="tile" data-go="notes"><div class="ic">♩</div><div><b>Ноты с клавиш</b><span>Нота на стане → клавиша</span></div></button>
+    <button class="tile" data-go="scales"><div class="ic">〰</div><div><b>Гаммы и ровность</b><span>Темп, ровность, сила звука</span></div></button>
+    <button class="tile" data-go="pedal"><div class="ic">⎍</div><div><b>Педаль</b><span>Смена педали на аккордах</span></div></button>
+    <button class="tile" data-go="record"><div class="ic">●</div><div><b>Запись</b><span>Исполнение для разбора</span></div></button>
+    <button class="tile soon" data-soon><div class="ic">♯</div><div><b>Аккорды</b><span>Скоро</span></div></button>
+    <button class="tile" data-go="settings"><div class="ic">⚙</div><div><b>Настройки</b><span id="syncTile">Синхронизация, история</span></div></button>
+  </div>
+  <h2>Последние результаты</h2>
+  <div class="card list" id="homeHist"></div>
+  <div class="sync" id="syncLine"></div>
+</section>
+
+<!-- NOTES SETUP -->
+<section class="screen" id="notes">
+  <div class="topbar"><button class="back" data-home>‹ Тренажёры</button></div>
+  <div class="eyebrow">Чтение нот</div><h1>Ноты с клавиш</h1>
+  <p class="muted small" style="margin:8px 0 4px">На стане нота — нажмите эту клавишу. Октава важна. Время — от появления ноты до первого нажатия.</p>
+  <h2>Колоды</h2><div class="chips" id="decks"></div>
+  <h2>Нот в раунде</h2><div class="seg" id="counts"><button data-n="12">12</button><button data-n="24">24</button><button data-n="36">36</button></div>
+  <button class="btn primary" id="nStart">Начать</button>
+  <button class="btn" id="nErr" hidden>Раунд по ошибкам</button>
+</section>
+
+<!-- NOTES ROUND -->
+<section class="screen" id="nround">
+  <div class="topbar"><div class="eyebrow" id="nProg" style="font-size:15px">1 / 24</div><button class="back" id="nStop">Закончить</button></div>
+  <div class="bar"><i id="nBar"></i></div>
+  <div class="staffwrap" id="staffwrap"><svg id="staff" viewBox="0 0 360 230"></svg></div>
+  <div class="fb" id="nFb"></div>
+  <div class="hint">Смотрите сначала на ключ</div>
+</section>
+
+<!-- SCALES SETUP -->
+<section class="screen" id="scales">
+  <div class="topbar"><button class="back" data-home>‹ Тренажёры</button></div>
+  <div class="eyebrow">Техника</div><h1>Гаммы и ровность</h1>
+  <p class="muted small" style="margin:8px 0 4px">Играйте под свой метроном. Приложение измерит реальный темп, ровность, силу звука и найдёт запинки.</p>
+  <h2>Упражнение</h2><div class="chips" id="exList"></div>
+  <h2>Рука</h2><div class="seg" id="hands"><button data-h="R">Правая</button><button data-h="L">Левая</button><button data-h="B">Обе</button></div>
+  <h2>Длительность нот</h2><div class="seg" id="values"><button data-v="1">Четверти</button><button data-v="2">Восьмые</button><button data-v="4">Шестнадцатые</button></div>
+  <div class="field"><label>Темп метронома (необязательно)</label><input id="sTarget" inputmode="numeric" placeholder="например, 72"></div>
+  <button class="btn primary" id="sStart">Начать</button>
+</section>
+
+<!-- SCALES LIVE -->
+<section class="screen" id="slive">
+  <div class="topbar"><div class="eyebrow" id="sTitle"></div><button class="back" id="sCancel">Отмена</button></div>
+  <div class="card live"><div class="num" id="sCount">0</div><div class="lbl">нот сыграно</div><div class="notes-strip" id="sStrip">Начинайте, когда готовы</div></div>
+  <div class="hint">Закончится само через 3 секунды тишины</div>
+  <button class="btn primary" id="sDone">Готово</button>
+</section>
+
+<!-- PEDAL SETUP -->
+<section class="screen" id="pedal">
+  <div class="topbar"><button class="back" data-home>‹ Тренажёры</button></div>
+  <div class="eyebrow">Техника</div><h1>Педаль</h1>
+  <p class="muted small" style="margin:8px 0 0">Правило из программы: на «раз» новый аккорд и одновременно нога вверх, на «два» — нажать и держать.</p>
+  <h2>Последовательность</h2><div class="chips" id="progList"></div>
+  <div class="field"><label>Сколько кругов</label><div class="seg" id="laps"><button data-l="1">1</button><button data-l="2">2</button><button data-l="3">3</button></div></div>
+  <button class="btn primary" id="pStart">Начать</button>
+</section>
+
+<!-- PEDAL LIVE -->
+<section class="screen" id="plive">
+  <div class="topbar"><div class="eyebrow" id="pTitle"></div><button class="back" id="pCancel">Отмена</button></div>
+  <div class="card live"><div class="lbl">Сейчас</div><div class="chordnow" id="pChord">—</div><div class="lbl" id="pNext"></div>
+    <div class="pedalbox"><span class="pill" id="pPedal">Педаль отпущена</span></div></div>
+  <div class="hint">Закончится само после последнего аккорда</div>
+  <button class="btn primary" id="pDone">Готово</button>
+</section>
+
+<!-- RECORD -->
+<section class="screen" id="record">
+  <div class="topbar"><button class="back" data-home id="rBack">‹ Тренажёры</button></div>
+  <div class="eyebrow">Исполнение</div><h1>Запись</h1>
+  <p class="muted small" style="margin:8px 0 0">Запишите пьесу или фрагмент. Приложение найдёт остановки, а Claude сможет разобрать запись по нотам.</p>
+  <div class="field"><label>Что играете</label><input id="rName" placeholder="например, «Ведмідь», запись недели"></div>
+  <div class="card live" style="margin-top:14px"><div class="num" id="rTime">0:00</div><div class="lbl" id="rInfo">Нажмите «Записать» и начинайте играть</div></div>
+  <button class="btn primary" id="rBtn">Записать</button>
+  <div class="hint">Запись начнётся с первой нажатой клавиши</div>
+  <h2>Сохранённые записи</h2><div class="card list" id="rList"></div>
+</section>
+
+<!-- RESULT (shared) -->
+<section class="screen" id="result">
+  <div class="topbar"><button class="back" data-home>‹ Тренажёры</button></div>
+  <div class="eyebrow" id="resEyebrow"></div><h1 id="resTitle">Итог</h1>
+  <div id="resBody"></div>
+  <h2>Отправка тренеру</h2>
+  <div class="card small" id="resSync"></div>
+  <textarea class="copy" id="copyText" readonly></textarea>
+  <button class="btn" id="copyBtn">Скопировать для Claude</button>
+  <button class="btn primary" id="againBtn">Ещё раз</button>
+</section>
+
+<!-- SETTINGS -->
+<section class="screen" id="settings">
+  <div class="topbar"><button class="back" data-home>‹ Тренажёры</button></div>
+  <div class="eyebrow">Настройки</div><h1>Синхронизация</h1>
+  <p class="muted small" style="margin:8px 0 0">Итоги упражнений сохраняются в ваш приватный репозиторий GitHub. Каждый день в 18:00 Claude забирает их в приложение «Фортепиано».</p>
+  <div class="field"><label>Логин GitHub</label><input id="ghOwner" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="ваш логин"></div>
+  <div class="field"><label>Репозиторий для данных (приватный)</label><input id="ghRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="piano-data"></div>
+  <div class="field"><label>Токен доступа (fine-grained, только к этому репозиторию)</label><input id="ghToken" type="password" autocomplete="off" spellcheck="false" placeholder="github_pat_…"></div>
+  <button class="btn primary" id="ghSave">Сохранить и проверить</button>
+  <div class="card small" id="ghStatus" style="margin-top:12px">Синхронизация выключена.</div>
+  <button class="btn" id="ghSyncNow">Отправить очередь сейчас</button>
+  <button class="btn" id="ghForget">Удалить токен с телефона</button>
+  <h2>История</h2>
+  <div class="card small muted">История хранится только на этом телефоне. Очистка не трогает то, что уже ушло в GitHub и в приложение.</div>
+  <button class="btn" id="clearHist"><span class="danger">Очистить историю</span></button>
+</section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const CLEF_T="M314 801Q300 854 291.0 906.0Q282 958 282 1012Q282 1059 288.5 1100.5Q295 1142 307 1177Q320 1217 341.0 1252.5Q362 1288 385.5 1311.0Q409 1334 427 1334Q451 1334 493 1249Q514 1206 524.0 1156.0Q534 1106 534 1049Q534 978 515.0 907.5Q496 837 459.5 775.0Q423 713 372 666L407 498Q422 500 432.0 501.0Q442 502 447 502Q508 502 556.0 467.5Q604 433 632.5 377.0Q661 321 661 254Q661 177 621.5 115.5Q582 54 503 25Q508 8 532 -117Q538 -147 541.0 -164.5Q544 -182 545.0 -195.0Q546 -208 546 -225Q546 -275 521.5 -314.5Q497 -354 455.5 -376.0Q414 -398 363 -398Q311 -398 271.0 -378.5Q231 -359 208.0 -324.5Q185 -290 185 -245Q185 -197 211.5 -165.0Q238 -133 287 -133Q329 -133 355.5 -163.5Q382 -194 382 -236Q382 -272 357.0 -299.0Q332 -326 292 -326H282Q308 -365 364 -365Q433 -365 472.0 -320.0Q511 -275 511 -205Q511 -188 507.0 -159.5Q503 -131 493 -91Q483 -51 477.5 -25.0Q472 1 470 12Q436 2 390 2Q304 2 222 52Q142 102 96.0 184.0Q50 266 50 361Q50 451 91 530Q132 609 192.5 675.0Q253 741 314 801ZM341 826Q364 838 390.0 870.5Q416 903 440.0 945.0Q464 987 479.0 1029.5Q494 1072 494 1106Q494 1142 483.0 1163.0Q472 1184 445 1184Q421 1184 398.5 1162.0Q376 1140 358.5 1103.5Q341 1067 331.0 1022.0Q321 977 321 930Q321 898 327.5 872.0Q334 846 341 826ZM398 379Q371 373 347.0 353.5Q323 334 308.5 306.5Q294 279 294 248Q294 223 307.0 196.5Q320 170 339 154Q352 142 365 136Q380 129 380 123Q380 120 370 117Q332 126 301.5 151.0Q271 176 253.5 211.5Q236 247 236 287Q236 330 253.5 370.0Q271 410 302.5 442.0Q334 474 374 490L345 641Q229 547 174.5 456.5Q120 366 120 277Q120 212 154.0 156.0Q188 100 247.0 65.5Q306 31 380 31Q400 31 420.5 35.0Q441 39 464 45ZM495 55Q593 97 593 227Q593 270 571.0 305.5Q549 341 512.0 362.0Q475 383 429 383Z";
+const CLEF_B="M50 123Q216 231 288 301Q336 348 373.0 408.5Q410 469 431.5 536.0Q453 603 453 669Q453 728 435.0 773.5Q417 819 383.0 845.0Q349 871 302 871Q284 871 264.5 867.0Q245 863 224 855Q181 839 158.0 813.5Q135 788 135 765Q135 756 143.0 752.0Q151 748 158 748Q168 748 183 752Q190 754 196.5 755.0Q203 756 210 756Q248 756 272.0 733.5Q296 711 296 674Q296 638 266.0 612.0Q236 586 195 586Q146 586 111.0 617.0Q76 648 76 697Q76 756 109.0 802.0Q142 848 198.5 874.0Q255 900 324 900Q400 900 460.0 867.0Q520 834 555.5 776.5Q591 719 591 646Q591 551 538 464Q511 419 476.5 379.0Q442 339 389.0 297.5Q336 256 256.0 208.0Q176 160 57 101ZM687 809Q710 809 726.0 793.0Q742 777 742 754Q742 731 726.0 715.5Q710 700 687 700Q664 700 648.0 715.5Q632 731 632 754Q632 777 648.0 793.0Q664 809 687 809ZM687 589Q710 589 726.0 573.0Q742 557 742 534Q742 511 726.0 495.5Q710 480 687 480Q664 480 648.0 495.5Q632 511 632 534Q632 557 648.0 573.0Q664 589 687 589Z";
+/* =================== utils =================== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ls={get(k,d){try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){toast("Память телефона переполнена")}}};
+const fmt=(v,d=1)=>(Math.round(v*10**d)/10**d).toFixed(d).replace(".",",");
+const sec=ms=>fmt(ms/1000,1)+" с";
+const mmss=ms=>{const s=Math.round(ms/1000);return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`};
+function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("on");clearTimeout(toast.h);toast.h=setTimeout(()=>el.classList.remove("on"),2400)}
+function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",s.id===id));scrollTo(0,0);current=id}
+let current="home";
+const median=a=>{if(!a.length)return null;const s=a.slice().sort((x,y)=>x-y),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2};
+const mean=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:null;
+const nowStamp=()=>{const d=new Date();return {date:d.toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit"}),time:d.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"}),iso:d.toISOString(),day:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`}};
+
+/* =================== notes & names =================== */
+const LETTERS=["C","D","E","F","G","A","B"],RU={C:"до",D:"ре",E:"ми",F:"фа",G:"соль",A:"ля",B:"си"},PC={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+const OCT={0:"субконтроктавы",1:"контроктавы",2:"большой",3:"малой",4:"первой",5:"второй",6:"третьей",7:"четвёртой",8:"пятой"};
+const PCN=["до","до♯","ре","ми♭","ми","фа","фа♯","соль","ля♭","ля","си♭","си"];
+const parse=s=>({letter:s[0],oct:+s.slice(1)});
+const midiOf=s=>{const n=parse(s);return 12*(n.oct+1)+PC[n.letter]};
+const nameOf=s=>{const n=parse(s);return `${RU[n.letter]} ${OCT[n.oct]}`};
+const nameMidi=m=>`${PCN[m%12]} ${OCT[Math.floor(m/12)-1]||""}`.trim();
+const shortMidi=m=>PCN[m%12];
+const diat=s=>{const n=parse(s);return n.oct*7+LETTERS.indexOf(n.letter)};
+
+/* =================== MIDI hub =================== */
+let midi=null,inputs=[],simMode=false;
+const listeners=new Set(); // fn({type:'on'|'off'|'pedal', note, vel, val, t})
+function emit(ev){listeners.forEach(f=>{try{f(ev)}catch(e){console.error(e)}})}
+function onMidi(e){
+  const d=e.data,s=d[0]&0xf0,t=e.timeStamp||performance.now();
+  if(s===0x90&&d[2]>0) emit({type:"on",note:d[1],vel:d[2],t});
+  else if(s===0x80||(s===0x90&&d[2]===0)) emit({type:"off",note:d[1],t});
+  else if(s===0xb0&&d[1]===64) emit({type:"pedal",val:d[2],down:d[2]>=64,t});
+}
+function setConn(state,title,sub){
+  $("#connDot").className="dot "+(state||""); $("#connText").textContent=state==="ok"?"Пианино":"Подключить";
+  $("#connTitle").textContent=title; $("#connSub").textContent=sub; $("#connCard").hidden=state==="ok";
+}
+function bindInputs(){
+  inputs=[...midi.inputs.values()]; inputs.forEach(i=>i.onmidimessage=onMidi);
+  if(inputs.length) setConn("ok","Пианино подключено",inputs.map(i=>i.name).join(", "));
+  else setConn("bad","Пианино не найдено","Проверьте переходник и что пианино включено, затем нажмите кнопку ещё раз.");
+}
+async function connect(){
+  if(!navigator.requestMIDIAccess){setConn("bad","MIDI недоступен","Нужен Chrome на Android или на компьютере.");return}
+  try{midi=await navigator.requestMIDIAccess();midi.onstatechange=bindInputs;bindInputs()}
+  catch(e){setConn("bad","Доступ к MIDI запрещён",(e&&e.name?e.name+". ":"")+"Разрешите MIDI-устройства в настройках сайта Chrome.")}
+}
+$("#connectBtn").onclick=connect; $("#connChip").onclick=()=>{if(!inputs.length)connect()};
+const ready=()=>inputs.length||simMode;
+function needPiano(){if(ready())return true;toast("Сначала подключите пианино");show("home");return false}
+
+/* =================== results store + GitHub sync =================== */
+let results=ls.get("results",[]); // newest first
+let queue=ls.get("queue",[]);     // pending uploads [{path, obj}]
+let gh=ls.get("gh",{owner:"",repo:"piano-data",token:""});
+function addResult(r){
+  const local={...r,details:r.details&&r.details.events?{...r.details,events:undefined}:r.details};
+  results.unshift(local); results=results.slice(0,300); ls.set("results",results);
+  const st=nowStamp();
+  queue.push({path:`results/${st.day}/${r.id}-${r.module}.json`,obj:r}); ls.set("queue",queue);
+  syncNow(); renderHome();
+}
+function b64(str){const bytes=new TextEncoder().encode(str);let bin="";for(let i=0;i<bytes.length;i+=8192)bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+8192));return btoa(bin)}
+async function ghFetch(path,opts={}){
+  return fetch(`https://api.github.com/repos/${encodeURIComponent(gh.owner)}/${encodeURIComponent(gh.repo)}${path}`,{...opts,headers:{Authorization:"Bearer "+gh.token,Accept:"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28",...(opts.headers||{})}});
+}
+let syncing=false,lastSyncErr="";
+async function syncNow(){
+  if(syncing||!gh.token||!gh.owner||!gh.repo||!queue.length){renderSync();return}
+  syncing=true; renderSync();
+  while(queue.length){
+    const item=queue[0];
+    try{
+      const r=await ghFetch(`/contents/${item.path.split("/").map(encodeURIComponent).join("/")}`,{method:"PUT",body:JSON.stringify({message:`piano: ${item.path}`,content:b64(JSON.stringify(item.obj))})});
+      if(r.ok||r.status===422){queue.shift();ls.set("queue",queue);lastSyncErr="";continue}
+      lastSyncErr=r.status===401?"токен не подходит или истёк":r.status===403?"у токена нет права записи":r.status===404?"репозиторий не найден или токен к нему не допущен":"ошибка GitHub "+r.status;
+      break;
+    }catch(e){lastSyncErr="нет связи с GitHub";break}
+  }
+  syncing=false; renderSync();
+}
+function syncText(){
+  if(!gh.token) return "Синхронизация выключена — итоги только на телефоне";
+  if(syncing) return "Отправляю в GitHub…";
+  if(queue.length) return `В очереди: ${queue.length}${lastSyncErr?` — ${lastSyncErr}`:""}`;
+  return "Всё отправлено ✓";
+}
+function renderSync(){
+  $("#syncLine").textContent=syncText(); $("#syncTile").textContent=gh.token?(queue.length?`В очереди: ${queue.length}`:"Синхронизация ✓"):"Синхронизация выкл.";
+  $("#ghStatus").textContent=syncText(); const rs=$("#resSync"); if(rs) rs.textContent=gh.token?syncText()+". Claude заберёт итог в 18:00.":"Синхронизация не настроена: итог можно скопировать и вставить в чат Claude вручную.";
+}
+addEventListener("online",syncNow);
+
+/* =================== home =================== */
+const MODNAME={notes:"Ноты",scales:"Гаммы",pedal:"Педаль",recording:"Запись"};
+function renderHome(){
+  $("#homeHist").innerHTML=results.length?results.slice(0,8).map(r=>`<div class="r"><span>${esc(r.date)} · ${esc(MODNAME[r.module]||r.module)} · ${esc(r.title)}</span><span>${esc(r.short||"")}</span></div>`).join(""):`<div class="muted small">Пока пусто.</div>`;
+  renderSync();
+}
+document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{const g=b.dataset.go;if(g==="settings"){fillSettings();show("settings");return}show(g);({notes:renderNotesSetup,scales:renderScalesSetup,pedal:renderPedalSetup,record:renderRecord}[g]||(()=>{}))()});
+document.querySelectorAll("[data-soon]").forEach(b=>b.onclick=()=>toast("Тренажёр аккордов — в следующем обновлении"));
+document.querySelectorAll("[data-home]").forEach(b=>b.onclick=()=>{if(rec.on)return toast("Сначала остановите запись");renderHome();show("home")});
+
+/* =================== result screen (shared) =================== */
+let againFn=null;
+function showResult({eyebrow,title,html,copy,again}){
+  $("#resEyebrow").textContent=eyebrow; $("#resTitle").textContent=title; $("#resBody").innerHTML=html;
+  $("#copyText").value=copy; againFn=again; $("#againBtn").hidden=!again; renderSync(); show("result");
+}
+$("#againBtn").onclick=()=>againFn&&againFn();
+$("#copyBtn").onclick=async()=>{const t=$("#copyText").value;try{await navigator.clipboard.writeText(t);toast("Скопировано")}catch(e){const ta=$("#copyText");ta.focus();ta.select();try{document.execCommand("copy");toast("Скопировано")}catch(_){toast("Выделите и скопируйте вручную")}}};
+function verdict(cls,text){return `<span class="verdict ${cls}">${esc(text)}</span>`}
+
+/* =================== wake lock =================== */
+let lock=null;
+async function wake(on=true){try{if(on&&!lock&&navigator.wakeLock){lock=await navigator.wakeLock.request("screen");lock.addEventListener("release",()=>lock=null)}if(!on&&lock){await lock.release();lock=null}}catch(e){}}
+
+/* =================== MODULE: notes =================== */
+const DECKS=[
+  {id:"bass",label:"Басовый ключ",sub:"фа большой — до первой",clef:"bass",notes:["F2","G2","A2","B2","C3","D3","E3","F3","G3","A3","B3","C4"]},
+  {id:"bassLedger",label:"Добавочные басового",sub:"под и над станом",clef:"bass",notes:["B1","C2","D2","E2","D4","E4"]},
+  {id:"trebleLedger",label:"Добавочные скрипичного",sub:"под и над станом",clef:"treble",notes:["A3","B3","C4","A5","B5","C6"]},
+  {id:"treble",label:"Скрипичный ключ",sub:"ре первой — соль второй",clef:"treble",notes:["D4","E4","F4","G4","A4","B4","C5","D5","E5","F5","G5"]},
+  {id:"damaged",label:"For the Damaged",sub:"ре — соль третьей",clef:"treble",notes:["D6","E6","F6","G6"]}
+];
+const NMETRIC={bass:"Клавиши · басовый ключ",bassLedger:"Клавиши · добавочные басового",trebleLedger:"Клавиши · добавочные скрипичного",treble:"Клавиши · скрипичный ключ",damaged:"Клавиши · For the Damaged"};
+let selDecks=ls.get("decks",["bass"]),nCount=ls.get("count",24),errPool=ls.get("errpool",[]);
+function renderNotesSetup(){
+  $("#decks").innerHTML=DECKS.map(d=>`<button data-d="${d.id}" class="${selDecks.includes(d.id)?"on":""}">${d.label}<small>${d.sub} · ${d.notes.length}</small></button>`).join("");
+  $("#decks").querySelectorAll("button").forEach(b=>b.onclick=()=>{const id=b.dataset.d;selDecks=selDecks.includes(id)?selDecks.filter(x=>x!==id):[...selDecks,id];ls.set("decks",selDecks);renderNotesSetup()});
+  $("#counts").querySelectorAll("button").forEach(b=>{b.classList.toggle("on",+b.dataset.n===nCount);b.onclick=()=>{nCount=+b.dataset.n;ls.set("count",nCount);renderNotesSetup()}});
+  $("#nErr").hidden=!errPool.length; $("#nErr").textContent=`Раунд по ошибкам (${errPool.length})`; $("#nStart").disabled=!selDecks.length;
+}
+const G=14,X0=20,X1=340,BOT=150;
+function drawStaff(card){
+  const bottom=card.clef==="treble"?diat("E4"):diat("G2"),step=diat(card.note)-bottom,y=s=>BOT-s*G/2;let h="";
+  for(let i=0;i<5;i++) h+=`<line x1="${X0}" x2="${X1}" y1="${y(i*2)}" y2="${y(i*2)}" stroke="#2b241c" stroke-width="1.6"/>`;
+  h+=`<path d="${card.clef==="treble"?CLEF_T:CLEF_B}" fill="#1c1609" transform="translate(${X0+2},${BOT}) scale(${G/250},${-G/250})"/>`;
+  const nx=215;
+  for(let s=-2;s>=step;s-=2) h+=`<line x1="${nx-22}" x2="${nx+22}" y1="${y(s)}" y2="${y(s)}" stroke="#2b241c" stroke-width="1.6"/>`;
+  for(let s=10;s<=step;s+=2) h+=`<line x1="${nx-22}" x2="${nx+22}" y1="${y(s)}" y2="${y(s)}" stroke="#2b241c" stroke-width="1.6"/>`;
+  h+=`<g transform="translate(${nx},${y(step)})"><ellipse rx="${G*0.82}" ry="${G*0.55}" fill="#1c1609"/><ellipse rx="${G*0.36}" ry="${G*0.46}" fill="#f6f0e4" transform="rotate(-35)"/></g>`;
+  $("#staff").innerHTML=h;
+}
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function buildCards(ids,n){const pool=[];DECKS.filter(d=>ids.includes(d.id)).forEach(d=>d.notes.forEach(note=>pool.push({note,clef:d.clef,deck:d.id})));let out=[];while(out.length<n){let b=shuffle(pool.slice());if(out.length&&b[0].note===out[out.length-1].note&&b.length>1)b.push(b.shift());out=out.concat(b)}return out.slice(0,n)}
+let NR=null;
+function nStart(cards,meta){if(!needPiano())return;NR={cards,i:0,first:true,att:[],meta,locked:false,shownAt:0};listeners.add(nListener);show("nround");nNext(true);wake()}
+function nNext(first){
+  if(!first)NR.i++; if(NR.i>=NR.cards.length)return nFinish();
+  const c=NR.cards[NR.i];NR.first=true;NR.locked=false;$("#nProg").textContent=`${NR.i+1} / ${NR.cards.length}`;$("#nBar").style.width=(NR.i/NR.cards.length*100)+"%";
+  $("#nFb").innerHTML="";$("#staffwrap").className="staffwrap";drawStaff(c);NR.shownAt=performance.now();
+}
+function nListener(ev){
+  if(ev.type!=="on"||!NR||NR.locked)return;
+  const c=NR.cards[NR.i],ms=Math.round(performance.now()-NR.shownAt),ok=ev.note===midiOf(c.note);
+  NR.att.push({note:c.note,deck:c.deck,clef:c.clef,pressed:ev.note,ok,first:NR.first,ms});
+  if(ok){NR.locked=true;$("#staffwrap").className="staffwrap good";$("#nFb").innerHTML=`<span style="color:var(--ok)">${esc(nameOf(c.note))}</span>${NR.first?`<span class="sub">${sec(ms)}</span>`:""}`;setTimeout(()=>nNext(false),NR.first?450:900)}
+  else{NR.first=false;$("#staffwrap").className="staffwrap bad";$("#nFb").innerHTML=`<span style="color:var(--warn)">Не то: ${esc(nameMidi(ev.note))}</span><span class="sub">Посмотрите на ключ и попробуйте ещё</span>`}
+}
+$("#nStart").onclick=()=>nStart(buildCards(selDecks,nCount),"normal");
+const nErrRound=()=>{if(!errPool.length)return;const n=Math.max(6,errPool.length*2);let c=[];while(c.length<n)c=c.concat(shuffle(errPool.slice()));nStart(c.slice(0,n),"errors")};
+$("#nErr").onclick=nErrRound;
+$("#nStop").onclick=()=>{if(NR&&NR.att.length)nFinish(true);else{listeners.delete(nListener);NR=null;show("notes")}};
+function nFinish(early){
+  listeners.delete(nListener);wake(false);
+  const firsts=NR.att.filter(a=>a.first),okF=firsts.filter(a=>a.ok),errs=firsts.filter(a=>!a.ok),med=median(okF.map(a=>a.ms)),total=firsts.length;
+  const decks=[...new Set(NR.cards.map(c=>c.deck))],isErr=NR.meta==="errors";
+  const label=isErr?"Работа над ошибками":decks.length>1?"Смешанные":DECKS.find(d=>d.id===decks[0]).label;
+  const metric=isErr||simMode?null:decks.length>1?"Клавиши · смешанные":NMETRIC[decks[0]];
+  const slow=okF.slice().sort((a,b)=>b.ms-a.ms).slice(0,3);
+  errs.forEach(e=>{if(!errPool.some(p=>p.note===e.note&&p.clef===e.clef))errPool.push({note:e.note,clef:e.clef,deck:e.deck})});
+  if(isErr){const fixed=okF.map(a=>a.note+a.clef);errPool=errPool.filter(p=>!fixed.includes(p.note+p.clef))} ls.set("errpool",errPool);
+  const st=nowStamp(),medS=med?fmt(med/1000,2):null;
+  const errText=errs.map(e=>`${nameOf(e.note)} → ${nameMidi(e.pressed)}`);
+  const summary=`${label}: ${okF.length} из ${total} с первой попытки${medS?`, медиана ${medS} с`:""}${early?" (прерван)":""}.${errText.length?` Ошибки: ${errText.join("; ")}.`:""}${slow.length?` Дольше всего: ${slow.map(a=>`${nameOf(a.note)} ${sec(a.ms)}`).join(", ")}.`:""}`;
+  const r={v:1,id:Date.now(),module:"notes",date:`${st.date} ${st.time}`,iso:st.iso,title:label,short:`${medS?medS+" с · ":""}${okF.length}/${total}`,
+    metrics:metric&&med?[{name:metric,value:+(med/1000).toFixed(2),unit:"с",better:"down",note:`${okF.length} из ${total}`}]:[],summary,sim:simMode||undefined,
+    details:{decks,errors:errs.map(e=>({note:e.note,pressed:nameMidi(e.pressed)})),slow:slow.map(a=>({note:a.note,ms:a.ms}))}};
+  if(!simMode) addResult(r);
+  const html=`<div class="card" style="margin-top:14px"><span class="muted small">Медиана верных с первой попытки</span><div class="big">${medS?medS+" с":"—"}</div></div>
+   <div class="kpis"><div class="kpi"><span>С первой попытки</span><b>${okF.length} из ${total}</b></div><div class="kpi"><span>Ошибок</span><b>${errs.length}</b></div></div>
+   <h2>Ошибки</h2><div class="card list">${errs.length?errs.map(e=>`<div class="r"><span>${esc(nameOf(e.note))}</span><span>нажато ${esc(nameMidi(e.pressed))}</span></div>`).join(""):`<div class="muted small">Без ошибок 🎉</div>`}</div>
+   <h2>Дольше всего</h2><div class="card list">${slow.map(a=>`<div class="r"><span>${esc(nameOf(a.note))}</span><span>${sec(a.ms)}</span></div>`).join("")||`<div class="muted small">—</div>`}</div>
+   ${errPool.length?`<button class="btn" id="resErr">Раунд по ошибкам (${errPool.length})</button>`:""}`;
+  const meta=NR.meta;NR=null;
+  showResult({eyebrow:"Ноты с клавиш"+(simMode?" · без пианино":""),title:label,html,copy:copyLine(r),again:()=>meta==="errors"?nErrRound():nStart(buildCards(selDecks,nCount),"normal")});
+  const re=$("#resErr");if(re)re.onclick=nErrRound;
+}
+function copyLine(r){
+  const m=r.metrics.map(x=>`«${x.name}» = ${String(x.value).replace(".",",")} ${x.unit}${x.note?` (${x.note})`:""}`).join("; ");
+  return `Запиши результат MIDI-тренажёра (${MODNAME[r.module]}), ${r.date}. ${r.summary}${m?` Метрики для графиков: ${m}.`:" В графики не вносить."}`;
+}
+
+/* =================== MODULE: scales & evenness =================== */
+const EXERCISES=[
+  {id:"pos5",label:"Позиция до минора",sub:"до–ре–ми♭–фа–соль и обратно",pattern:[0,2,3,5,7,5,3,2]},
+  {id:"harm1",label:"Гамма до минор гарм.",sub:"1 октава вверх-вниз",pattern:[0,2,3,5,7,8,11,12,11,8,7,5,3,2]},
+  {id:"harm2",label:"Гамма до минор гарм.",sub:"2 октавы вверх-вниз",pattern:[0,2,3,5,7,8,11,12,14,15,17,19,20,23,24,23,20,19,17,15,14,12,11,8,7,5,3,2]},
+  {id:"free",label:"Свободно",sub:"любое упражнение, без проверки нот",pattern:null}
+];
+let sCfg=ls.get("scfg",{ex:"pos5",hand:"R",val:2});
+function renderScalesSetup(){
+  $("#exList").innerHTML=EXERCISES.map(e=>`<button data-e="${e.id}" class="${sCfg.ex===e.id?"on":""}">${e.label}<small>${e.sub}</small></button>`).join("");
+  $("#exList").querySelectorAll("button").forEach(b=>b.onclick=()=>{sCfg.ex=b.dataset.e;ls.set("scfg",sCfg);renderScalesSetup()});
+  $("#hands").querySelectorAll("button").forEach(b=>{b.classList.toggle("on",b.dataset.h===sCfg.hand);b.onclick=()=>{sCfg.hand=b.dataset.h;ls.set("scfg",sCfg);renderScalesSetup()}});
+  $("#values").querySelectorAll("button").forEach(b=>{b.classList.toggle("on",+b.dataset.v===sCfg.val);b.onclick=()=>{sCfg.val=+b.dataset.v;ls.set("scfg",sCfg);renderScalesSetup()}});
+  if(sCfg.target)$("#sTarget").value=sCfg.target;
+}
+let SR=null;
+function sTitle(){const e=EXERCISES.find(x=>x.id===sCfg.ex);return `${e.label}${e.id==="harm2"?" (2 окт.)":""} · ${({R:"правая",L:"левая",B:"обе руки"})[sCfg.hand]}`}
+$("#sStart").onclick=()=>{
+  if(!needPiano())return; sCfg.target=parseInt($("#sTarget").value)||null; ls.set("scfg",sCfg);
+  SR={notes:[],silence:null}; $("#sTitle").textContent=sTitle(); $("#sCount").textContent="0"; $("#sStrip").textContent="Начинайте, когда готовы";
+  listeners.add(sListener); show("slive"); wake();
+};
+function sListener(ev){
+  if(ev.type!=="on"||!SR)return;
+  SR.notes.push({n:ev.note,v:ev.vel,t:ev.t}); $("#sCount").textContent=SR.notes.length;
+  $("#sStrip").textContent=SR.notes.slice(-10).map(x=>shortMidi(x.n)).join(" ");
+  clearTimeout(SR.silence); SR.silence=setTimeout(()=>{if(SR&&SR.notes.length>=6)sFinish()},3000);
+}
+$("#sCancel").onclick=()=>{listeners.delete(sListener);if(SR)clearTimeout(SR.silence);SR=null;wake(false);show("scales")};
+$("#sDone").onclick=()=>{if(!SR||SR.notes.length<4)return toast("Сыграйте хотя бы несколько нот");sFinish()};
+function groupOnsets(notes,win=60){const g=[];notes.forEach(x=>{const last=g[g.length-1];if(last&&x.t-last.t0<=win)last.ns.push(x);else g.push({t0:x.t,ns:[x]})});return g}
+function sFinish(){
+  listeners.delete(sListener);clearTimeout(SR.silence);wake(false);
+  const ex=EXERCISES.find(e=>e.id===sCfg.ex),notes=SR.notes;SR=null;
+  const both=sCfg.hand==="B";
+  const groups=both?groupOnsets(notes,70):notes.map(x=>({t0:x.t,ns:[x]}));
+  const iois=[];for(let i=1;i<groups.length;i++)iois.push(groups[i].t0-groups[i-1].t0);
+  const medI=median(iois);
+  const bpm=medI?60000/(medI*sCfg.val):null;
+  const dev=iois.map(x=>x-medI),mad=mean(dev.map(Math.abs)),pct=medI?mad/medI*100:null;
+  const hiccups=[];iois.forEach((x,i)=>{if(x>medI*1.5)hiccups.push({i:i+1,ms:x,before:groups[i].ns[0].n,after:groups[i+1].ns[0].n})});
+  hiccups.sort((a,b)=>b.ms-a.ms);
+  // dynamics
+  const vels=notes.map(x=>x.v),vMean=mean(vels),vSd=Math.sqrt(mean(vels.map(v=>(v-vMean)**2)));
+  const byPitch={};notes.forEach(x=>{(byPitch[x.n]=byPitch[x.n]||[]).push(x.v)});
+  const weak=Object.entries(byPitch).map(([n,a])=>({n:+n,d:mean(a)-vMean})).sort((a,b)=>a.d-b.d).slice(0,2).filter(x=>x.d<-6);
+  // hand sync & balance
+  let asyncMs=null,balance=null;
+  if(both){const gs=groups.filter(g=>g.ns.length>=2);if(gs.length){asyncMs=mean(gs.map(g=>{const ts=g.ns.map(x=>x.t);return Math.max(...ts)-Math.min(...ts)}));const lo=mean(gs.map(g=>g.ns.reduce((a,b)=>a.n<b.n?a:b).v)),hi=mean(gs.map(g=>g.ns.reduce((a,b)=>a.n>b.n?a:b).v));balance=hi-lo}}
+  // correctness
+  let wrong=null,checked=0;
+  if(ex.pattern){
+    const line=groups.map(g=>both?g.ns.reduce((a,b)=>a.n>b.n?a:b).n:g.ns[0].n);
+    const root=line.find(n=>n%12===0)??line[0]; const start=line.indexOf(root);
+    const exp=[];const L=ex.pattern.length;
+    let p=0;wrong=0;
+    for(let i=start;i<line.length;i++){const e=root+ex.pattern[p%L];const e2=root+ex.pattern[(p+1)%L];checked++;
+      if(line[i]===e){p++}else if(line[i]===e2){p+=2;wrong++}else{wrong++;p++}}
+    wrong+=start>0?0:0;
+  }
+  // verdicts
+  const evCls=pct==null?"mid":pct<=5?"good":pct<=10?"mid":"bad",evTxt=pct==null?"—":pct<=5?"очень ровно":pct<=10?"ровно, есть колебания":"неровно";
+  const tgt=sCfg.target; const tgtTxt=tgt&&bpm?(Math.abs(bpm-tgt)<=3?"в темпе метронома":bpm<tgt?`медленнее метронома на ${Math.round(tgt-bpm)}`:`быстрее метронома на ${Math.round(bpm-tgt)}`):"";
+  // chart of deviations
+  const chart=devChart(dev,medI);
+  const title=sTitle(),st=nowStamp(),exName=`${ex.label}${ex.id==="harm2"?" 2 окт.":""}`;
+  const handName={R:"правая",L:"левая",B:"обе"}[sCfg.hand];
+  const metrics=[];
+  if(!simMode&&bpm&&iois.length>=5){
+    metrics.push({name:`Темп · ${exName} (${handName})`,value:Math.round(bpm),unit:"уд/мин",better:"up",note:{1:"четверти",2:"восьмые",4:"шестнадцатые"}[sCfg.val]});
+    metrics.push({name:`Неровность · ${exName} (${handName})`,value:+pct.toFixed(1),unit:"%",better:"down"});
+  }
+  const summary=`${title}: ${notes.length} нот, темп ${bpm?Math.round(bpm):"—"} (${{1:"четверти",2:"восьмые",4:"шестнадцатые"}[sCfg.val]})${tgt?`, метроном ${tgt}`:""}; неровность ±${mad?Math.round(mad):"—"} мс (${pct?fmt(pct,1):"—"}%, ${evTxt})${hiccups.length?`; запинок ${hiccups.length}, худшая ${sec(hiccups[0].ms)} между ${shortMidi(hiccups[0].before)} и ${shortMidi(hiccups[0].after)}`:""}${wrong!=null?`; неверных нот ${wrong}`:""}; сила звука ${Math.round(vMean)}±${Math.round(vSd)}${weak.length?`, слабее: ${weak.map(w=>nameMidi(w.n)).join(", ")}`:""}${asyncMs!=null?`; рассинхрон рук ${Math.round(asyncMs)} мс, правая ${balance>=0?"громче":"тише"} левой на ${Math.abs(Math.round(balance))}`:""}.`;
+  const r={v:1,id:Date.now(),module:"scales",date:`${st.date} ${st.time}`,iso:st.iso,title,short:`${bpm?Math.round(bpm):"—"} · ±${pct?fmt(pct,1):"—"}%`,metrics,summary,
+    details:{exercise:ex.id,hand:sCfg.hand,noteValue:sCfg.val,target:tgt,count:notes.length,iois:iois.map(Math.round),vel:vels,wrong,hiccups:hiccups.slice(0,5).map(h=>({ms:Math.round(h.ms),before:nameMidi(h.before),after:nameMidi(h.after)}))}};
+  if(!simMode) addResult(r);
+  const html=`<div class="card" style="margin-top:14px"><span class="muted small">Реальный темп (${{1:"четверти",2:"восьмые",4:"шестнадцатые"}[sCfg.val]})</span><div class="big">${bpm?Math.round(bpm):"—"}</div>${tgtTxt?verdict(Math.abs(bpm-tgt)<=3?"good":"mid",tgtTxt):""}</div>
+   <div class="kpis">
+    <div class="kpi"><span>Ровность</span><b>±${mad?Math.round(mad):"—"} мс</b><i>${pct?fmt(pct,1)+"% от доли":""}</i>${verdict(evCls,evTxt)}</div>
+    <div class="kpi"><span>Неверных нот</span><b>${wrong==null?"—":wrong}</b><i>${wrong==null?"без проверки":"из "+checked}</i></div>
+    <div class="kpi"><span>Сила звука</span><b>${Math.round(vMean)}</b><i>разброс ±${Math.round(vSd)} из 127</i></div>
+    ${asyncMs!=null?`<div class="kpi"><span>Руки вместе</span><b>${Math.round(asyncMs)} мс</b><i>правая ${balance>=0?"громче":"тише"} на ${Math.abs(Math.round(balance))}</i></div>`:`<div class="kpi"><span>Запинок</span><b>${hiccups.length}</b><i>дольше 1,5 доли</i></div>`}
+   </div>
+   <h2>Каждая нота: раньше или позже доли</h2><div class="card chart">${chart}<div class="muted small" style="margin-top:6px">Выше линии — нота пришла позже, ниже — раньше. Оранжевые — больше 10%.</div></div>
+   ${hiccups.length?`<h2>Запинки</h2><div class="card list">${hiccups.slice(0,4).map(h=>`<div class="r"><span>${esc(shortMidi(h.before))} → ${esc(shortMidi(h.after))}</span><span>${sec(h.ms)}</span></div>`).join("")}</div>`:""}
+   ${weak.length?`<h2>Тише остальных</h2><div class="card list">${weak.map(w=>`<div class="r"><span>${esc(nameMidi(w.n))}</span><span>${Math.round(w.d)} от средней</span></div>`).join("")}</div>`:""}`;
+  showResult({eyebrow:"Гаммы и ровность"+(simMode?" · без пианино":""),title,html,copy:copyLine(r),again:()=>{show("scales");$("#sStart").click()}});
+}
+function devChart(dev,medI){
+  if(!dev.length)return `<div class="muted small">Мало нот для графика</div>`;
+  const W=320,H=120,L=8,R=8,mid=H/2,lim=Math.max(medI*0.3,...dev.map(Math.abs)),x=i=>L+(dev.length===1?(W-L-R)/2:i*(W-L-R)/(dev.length-1)),y=v=>mid-v/lim*(mid-10);
+  let h=`<line x1="${L}" x2="${W-R}" y1="${mid}" y2="${mid}" stroke="#76695b" stroke-width="1"/>`;
+  [0.1,-0.1].forEach(f=>h+=`<line x1="${L}" x2="${W-R}" y1="${y(medI*f)}" y2="${y(medI*f)}" stroke="#3a332b" stroke-width="1" stroke-dasharray="3 4"/>`);
+  const bw=Math.max(2,Math.min(10,(W-L-R)/dev.length-2));
+  dev.forEach((v,i)=>{const big=Math.abs(v)>medI*0.1;h+=`<rect x="${x(i)-bw/2}" y="${Math.min(mid,y(v))}" width="${bw}" height="${Math.max(1,Math.abs(y(v)-mid))}" rx="2" fill="${big?"#e78a6a":"#e8b65a"}"/>`});
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Отклонение каждой ноты от доли">${h}</svg>`;
+}
+
+/* =================== MODULE: pedal =================== */
+const PROGS=[
+  {id:"cfgc",label:"до минор → фа минор → соль мажор → до минор",chords:[{n:"до минор",pc:[0,3,7]},{n:"фа минор",pc:[5,8,0]},{n:"соль мажор",pc:[7,11,2]},{n:"до минор",pc:[0,3,7]}]},
+  {id:"free",label:"Свободно",sub:"любые аккорды",chords:null}
+];
+let pCfg=ls.get("pcfg",{prog:"cfgc",laps:2});
+function renderPedalSetup(){
+  $("#progList").innerHTML=PROGS.map(p=>`<button data-p="${p.id}" class="${pCfg.prog===p.id?"on":""}">${p.label}${p.sub?`<small>${p.sub}</small>`:""}</button>`).join("");
+  $("#progList").querySelectorAll("button").forEach(b=>b.onclick=()=>{pCfg.prog=b.dataset.p;ls.set("pcfg",pCfg);renderPedalSetup()});
+  $("#laps").querySelectorAll("button").forEach(b=>{b.classList.toggle("on",+b.dataset.l===pCfg.laps);b.onclick=()=>{pCfg.laps=+b.dataset.l;ls.set("pcfg",pCfg);renderPedalSetup()}});
+}
+let PR=null;
+function pSeq(){const p=PROGS.find(x=>x.id===pCfg.prog);if(!p.chords)return null;let s=[];for(let i=0;i<pCfg.laps;i++)s=s.concat(i?p.chords.slice(1):p.chords);return s}
+$("#pStart").onclick=()=>{
+  if(!needPiano())return; PR={ev:[],seq:pSeq(),chordIdx:0,lastOn:-1e9,timer:null,pedal:false};
+  $("#pTitle").textContent=PROGS.find(x=>x.id===pCfg.prog).label; pUpdateLive(); listeners.add(pListener); show("plive"); wake();
+};
+function pUpdateLive(){
+  const s=PR.seq; $("#pChord").textContent=s?(s[PR.chordIdx]?.n||"Готово"):"Играйте аккорды";
+  $("#pNext").textContent=s&&s[PR.chordIdx+1]?`дальше: ${s[PR.chordIdx+1].n}`:"";
+  $("#pPedal").textContent=PR.pedal?"Педаль нажата":"Педаль отпущена"; $("#pPedal").classList.toggle("on",PR.pedal);
+}
+function pListener(ev){
+  if(!PR)return; PR.ev.push(ev);
+  if(ev.type==="pedal"){PR.pedal=ev.down;pUpdateLive();return}
+  if(ev.type==="on"){ if(ev.t-PR.lastOn>150){ if(PR.lastOn>0) PR.chordIdx++; } PR.lastOn=ev.t; pUpdateLive();
+    clearTimeout(PR.timer); if(PR.seq&&PR.chordIdx>=PR.seq.length-1) PR.timer=setTimeout(()=>{if(PR)pFinish()},2500); }
+}
+$("#pCancel").onclick=()=>{listeners.delete(pListener);if(PR)clearTimeout(PR.timer);PR=null;wake(false);show("pedal")};
+$("#pDone").onclick=()=>{if(!PR||!PR.ev.some(e=>e.type==="on"))return toast("Сыграйте хотя бы два аккорда");pFinish()};
+function pFinish(){
+  listeners.delete(pListener);clearTimeout(PR.timer);wake(false);
+  const evs=PR.ev,seq=PR.seq;PR=null;
+  const ons=evs.filter(e=>e.type==="on"),peds=evs.filter(e=>e.type==="pedal");
+  const chords=groupOnsets(ons.map(e=>({n:e.note,v:e.vel,t:e.t})),120).filter(g=>g.ns.length>=2);
+  // pedal state at time t
+  const pedalAt=t=>{let s=false;for(const p of peds){if(p.t>t)break;s=p.down}return s};
+  const changes=[];
+  for(let i=1;i<chords.length;i++){
+    const c=chords[i],t0=c.t0,prevT=chords[i-1].t0,nextT=chords[i+1]?.t0??t0+4000;
+    const ups=peds.filter(p=>!p.down&&p.t>prevT+80&&p.t<nextT),downs=peds.filter(p=>p.down&&p.t>prevT+80&&p.t<nextT);
+    const up=ups.length?ups.reduce((a,b)=>Math.abs(a.t-t0)<Math.abs(b.t-t0)?a:b):null;
+    const down=up?downs.find(d=>d.t>up.t):downs[0];
+    let issue="ok",note="";
+    const heldAcross=pedalAt(t0-1)&&(!up||up.t-t0>200);
+    if(!up&&!down&&!pedalAt(t0+50)) {issue="none";note="без педали"}
+    else if(heldAcross){issue="smear";note="грязь: педаль не снята на смене"}
+    else if(up&&up.t<t0-150){issue="early";note=`нога вверх раньше аккорда на ${Math.round(t0-up.t)} мс — звук прерывается`}
+    else if(!down||down.t-t0>1500){issue="late";note="педаль не взята снова"}
+    else if(down.t<t0+40){issue="early-down";note="педаль нажата вместе с аккордом — захватит прошлый"}
+    else note=`вверх ${up?Math.round(up.t-t0):"—"} мс, вниз через ${Math.round(down.t-t0)} мс`;
+    const pcs=[...new Set(c.ns.map(x=>x.n%12))];
+    let chordOk=null; if(seq&&seq[i]){const exp=seq[i].pc;chordOk=exp.every(p=>pcs.includes(p))&&pcs.every(p=>exp.includes(p))}
+    changes.push({i,issue,note,up:up?Math.round(up.t-t0):null,down:down?Math.round(down.t-t0):null,chord:seq?.[i]?.n||pcs.map(p=>PCN[p]).join("-"),chordOk});
+  }
+  const clean=changes.filter(c=>c.issue==="ok").length,total=changes.length,pct=total?clean/total*100:null;
+  const st=nowStamp(),title=seq?"c → f → G → c":"Свободно";
+  const wrongCh=changes.filter(c=>c.chordOk===false).length;
+  const metrics=!simMode&&total>=2?[{name:"Педаль · чистые смены",value:Math.round(pct),unit:"%",better:"up",note:`${clean} из ${total}`}]:[];
+  const issues={};changes.forEach(c=>{if(c.issue!=="ok")issues[c.issue]=(issues[c.issue]||0)+1});
+  const ISS={smear:"грязь",early:"ранний подъём",late:"не взята снова","early-down":"нажата вместе с аккордом",none:"без педали"};
+  const okDowns=changes.filter(c=>c.issue==="ok").map(c=>c.down);
+  const summary=`Педаль, ${title}: чистых смен ${clean} из ${total}${Object.keys(issues).length?` (${Object.entries(issues).map(([k,v])=>`${ISS[k]} — ${v}`).join(", ")})`:""}${okDowns.length?`; педаль берётся в среднем через ${Math.round(mean(okDowns))} мс после аккорда`:""}${wrongCh?`; неверных аккордов ${wrongCh}`:""}.`;
+  const r={v:1,id:Date.now(),module:"pedal",date:`${st.date} ${st.time}`,iso:st.iso,title,short:`${clean}/${total} чисто`,metrics,summary,details:{changes}};
+  if(!simMode) addResult(r);
+  const cls=pct==null?"mid":pct>=90?"good":pct>=60?"mid":"bad";
+  const html=`<div class="card" style="margin-top:14px"><span class="muted small">Чистых смен педали</span><div class="big">${clean} из ${total}</div>${verdict(cls,pct==null?"мало аккордов":pct>=90?"отлично":pct>=60?"почти":"нужно медленнее")}</div>
+   <div class="kpis"><div class="kpi"><span>Педаль после аккорда</span><b>${okDowns.length?Math.round(mean(okDowns))+" мс":"—"}</b><i>в среднем, на чистых сменах</i></div>
+   <div class="kpi"><span>Неверных аккордов</span><b>${seq?wrongCh:"—"}</b><i>${seq?"по нотам последовательности":"без проверки"}</i></div></div>
+   <h2>Каждая смена</h2><div class="card list">${changes.map(c=>`<div class="r"><span>${c.issue==="ok"?"✓":"✗"} ${esc(c.chord)}${c.chordOk===false?" (другие ноты)":""}</span><span>${esc(c.note)}</span></div>`).join("")||`<div class="muted small">Сыграйте хотя бы два аккорда</div>`}</div>`;
+  showResult({eyebrow:"Педаль"+(simMode?" · без пианино":""),title:seq?PROGS[0].label:"Свободно",html,copy:copyLine(r),again:()=>{show("pedal");$("#pStart").click()}});
+}
+
+/* =================== MODULE: recording =================== */
+const rec={on:false,armed:false,ev:[],t0:0,tick:null};
+let recordings=ls.get("recs",[]); // [{id,name,date,dur,notes,stops}]
+function renderRecord(){
+  $("#rList").innerHTML=recordings.length?recordings.slice(0,10).map(r=>`<div class="r"><span>${esc(r.date)} · ${esc(r.name)}</span><span>${mmss(r.dur)} · <button class="link" data-mid="${r.id}">.mid</button></span></div>`).join(""):`<div class="muted small">Пока нет записей.</div>`;
+  $("#rList").querySelectorAll("[data-mid]").forEach(b=>b.onclick=()=>downloadMid(+b.dataset.mid));
+}
+function recListener(ev){
+  if(!rec.on)return;
+  if(rec.armed&&ev.type==="on"){rec.armed=false;rec.t0=ev.t;$("#rInfo").textContent="Идёт запись…"}
+  if(rec.armed)return;
+  rec.ev.push([Math.round(ev.t-rec.t0),ev.type==="on"?1:ev.type==="off"?0:2,ev.type==="pedal"?ev.val:ev.note,ev.vel||0]);
+  if(ev.type==="on")$("#rInfo").textContent=`Нот: ${rec.ev.filter(e=>e[1]===1).length}`;
+}
+$("#rBtn").onclick=()=>{
+  if(!rec.on){ if(!needPiano())return; Object.assign(rec,{on:true,armed:true,ev:[],t0:0}); listeners.add(recListener); wake();
+    $("#rBtn").textContent="Остановить"; $("#rBtn").className="btn rec"; $("#rInfo").textContent="Жду первую ноту…"; $("#rTime").textContent="0:00";
+    rec.tick=setInterval(()=>{if(!rec.armed)$("#rTime").textContent=mmss(performance.now()-rec.t0)},500); return; }
+  stopRecording();
+};
+function stopRecording(){
+  listeners.delete(recListener);clearInterval(rec.tick);rec.on=false;wake(false);$("#rBtn").textContent="Записать";$("#rBtn").className="btn primary";
+  const ev=rec.ev;if(!ev.some(e=>e[1]===1)){toast("Ничего не записано");return}
+  const name=$("#rName").value.trim()||"Запись";
+  const ons=ev.filter(e=>e[1]===1),dur=ev[ev.length-1][0];
+  const stops=[];for(let i=1;i<ons.length;i++){const gap=ons[i][0]-ons[i-1][0];if(gap>=1500)stops.push({at:ons[i-1][0],gap,after:nameMidi(ons[i-1][2])})}
+  const gaps=[];for(let i=1;i<ons.length;i++){const g=ons[i][0]-ons[i-1][0];if(g>40)gaps.push(g)}
+  const id=Date.now(),st=nowStamp();
+  const meta={id,name,date:`${st.date} ${st.time}`,dur,notes:ons.length,stops:stops.length};
+  recordings.unshift(meta);recordings=recordings.slice(0,30);ls.set("recs",recordings);
+  ls.set("rec-"+id,ev); // events kept locally for .mid
+  // keep only last 10 recordings' events
+  recordings.slice(10).forEach(r=>{try{localStorage.removeItem("rec-"+r.id)}catch(e){}});
+  const summary=`Запись «${name}»: ${mmss(dur)}, ${ons.length} нот, остановок дольше 1,5 с: ${stops.length}${stops.length?` (${stops.slice(0,5).map(s=>`на ${mmss(s.at)} после ${s.after}, ${sec(s.gap)}`).join("; ")})`:""}.`;
+  const r={v:1,id,module:"recording",date:`${st.date} ${st.time}`,iso:st.iso,title:name,short:`${mmss(dur)} · остановок ${stops.length}`,metrics:[],summary,details:{dur,notes:ons.length,stops,events:ev}};
+  if(!simMode) addResult(r);
+  renderRecord();
+  const html=`<div class="card" style="margin-top:14px"><span class="muted small">Остановок дольше 1,5 с</span><div class="big">${stops.length}</div>${verdict(stops.length?"mid":"good",stops.length?"есть остановки":"без остановок")}</div>
+   <div class="kpis"><div class="kpi"><span>Длительность</span><b>${mmss(dur)}</b></div><div class="kpi"><span>Нот</span><b>${ons.length}</b></div></div>
+   ${stops.length?`<h2>Где остановки</h2><div class="card list">${stops.slice(0,8).map(s=>`<div class="r"><span>${mmss(s.at)} · после ${esc(s.after)}</span><span>${sec(s.gap)}</span></div>`).join("")}</div>`:""}
+   <button class="btn" id="resMid">Скачать .mid</button>
+   <div class="muted small" style="margin-top:10px">Полная запись по нотам уходит в GitHub — в чате проекта можно попросить Claude разобрать её по тактам.</div>`;
+  showResult({eyebrow:"Запись"+(simMode?" · без пианино":""),title:name,html,copy:copyLine({...r,summary}),again:()=>{show("record");renderRecord()}});
+  $("#resMid").onclick=()=>downloadMid(id);
+}
+function vlq(n){const b=[n&0x7f];while(n>>=7)b.unshift((n&0x7f)|0x80);return b}
+function downloadMid(id){
+  const ev=ls.get("rec-"+id,null);if(!ev)return toast("Запись уже удалена с телефона");
+  const tpq=480,usPerQ=500000,toT=ms=>Math.round(ms*1000/usPerQ*tpq);
+  const trk=[0,0xff,0x51,3,(usPerQ>>16)&255,(usPerQ>>8)&255,usPerQ&255];let last=0;
+  ev.forEach(e=>{const t=toT(e[0]);trk.push(...vlq(Math.max(0,t-last)));last=t;
+    if(e[1]===1)trk.push(0x90,e[2]&127,Math.max(1,e[3]&127));else if(e[1]===0)trk.push(0x80,e[2]&127,64);else trk.push(0xb0,64,e[2]&127)});
+  trk.push(0,0xff,0x2f,0);
+  const head=[0x4d,0x54,0x68,0x64,0,0,0,6,0,0,0,1,(tpq>>8)&255,tpq&255],len=trk.length;
+  const bytes=new Uint8Array([...head,0x4d,0x54,0x72,0x6b,(len>>>24)&255,(len>>>16)&255,(len>>>8)&255,len&255,...trk]);
+  const meta=recordings.find(r=>r.id===id),a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([bytes],{type:"audio/midi"}));a.download=`${(meta?.name||"запись").replace(/[^\p{L}\p{N} _-]/gu,"").trim()||"zapis"}-${id}.mid`;
+  document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+}
+
+/* =================== settings =================== */
+function fillSettings(){$("#ghOwner").value=gh.owner||"";$("#ghRepo").value=gh.repo||"piano-data";$("#ghToken").value=gh.token?"••••••••":"";renderSync()}
+$("#ghSave").onclick=async()=>{
+  const owner=$("#ghOwner").value.trim(),repo=$("#ghRepo").value.trim()||"piano-data",tokIn=$("#ghToken").value.trim();
+  const token=tokIn&&!tokIn.startsWith("••")?tokIn:gh.token;
+  if(!owner||!token){toast("Заполните логин и токен");return}
+  gh={owner,repo,token};$("#ghStatus").textContent="Проверяю…";
+  try{
+    const r=await ghFetch("");
+    if(r.status===401){$("#ghStatus").textContent="Токен не подходит или истёк.";return}
+    if(r.status===404){$("#ghStatus").textContent="Репозиторий не найден или токен к нему не допущен.";return}
+    const j=await r.json();
+    if(!j.private){$("#ghStatus").innerHTML=`<span class="danger">Репозиторий публичный — результаты будут видны всем.</span> Сделайте его приватным в Settings → General → Danger Zone, затем проверьте снова.`;ls.set("gh",gh);return}
+    if(j.permissions&&j.permissions.push===false){$("#ghStatus").textContent="У токена нет права записи: нужно Contents → Read and write.";return}
+    ls.set("gh",gh);$("#ghToken").value="••••••••";toast("Синхронизация включена");syncNow();
+  }catch(e){$("#ghStatus").textContent="Нет связи с GitHub. Проверьте интернет."}
+};
+$("#ghSyncNow").onclick=()=>{lastSyncErr="";syncNow()};
+$("#ghForget").onclick=()=>{gh={owner:gh.owner,repo:gh.repo,token:""};ls.set("gh",gh);fillSettings();toast("Токен удалён с телефона")};
+let clearArmed=false;
+$("#clearHist").onclick=()=>{
+  if(!clearArmed){clearArmed=true;$("#clearHist").innerHTML=`<span class="danger">Нажмите ещё раз, чтобы очистить</span>`;setTimeout(()=>{clearArmed=false;$("#clearHist").innerHTML=`<span class="danger">Очистить историю</span>`},4000);return}
+  results=[];errPool=[];ls.set("results",results);ls.set("errpool",errPool);clearArmed=false;$("#clearHist").innerHTML=`<span class="danger">Очистить историю</span>`;renderHome();toast("История очищена");
+};
+
+/* =================== simulation (no piano) =================== */
+function enableSim(){simMode=true;setConn("ok","Режим без пианино","Экранные кнопки, результаты не сохраняются");$("#connText").textContent="Без пианино"}
+window.__sim={enable:enableSim,send:(ev)=>emit({...ev,t:ev.t??performance.now()})};
+
+/* =================== boot =================== */
+renderHome();
+if(navigator.permissions&&navigator.requestMIDIAccess){navigator.permissions.query({name:"midi"}).then(p=>{if(p.state==="granted")connect()}).catch(()=>{})}
+syncNow();
+</script>
+</body>
+</html>
