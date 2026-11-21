@@ -71,11 +71,18 @@ h2{font-size:17px;margin:22px 0 10px;font-weight:700}
 .chordnow{font-size:40px;font-weight:800;text-align:center;margin-top:10px}
 .chart svg{display:block;width:100%;height:auto}
 textarea.copy{width:100%;min-height:90px;margin-top:10px;background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;font-size:14px;line-height:1.4;resize:vertical}
-.toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);background:#000d;color:#fff;padding:11px 16px;border-radius:12px;font-size:14.5px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;text-align:center;z-index:9}
+.toast{position:fixed;left:50%;bottom:56px;transform:translateX(-50%);background:#000d;color:#fff;padding:11px 16px;border-radius:12px;font-size:14.5px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%;text-align:center;z-index:9}
 .toast.on{opacity:1}
 .sync{font-size:13px;color:var(--muted);margin-top:10px;text-align:center}
 .hint{font-size:13.5px;color:var(--dim);text-align:center;margin-top:8px}
 .danger{color:var(--warn)}
+.sess{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px}
+.sess b{display:block;font-size:16px}.sess span{font-size:13.5px;color:var(--muted)}
+.switch{width:52px;height:30px;border-radius:15px;background:var(--line);position:relative;flex:none;transition:background .2s}
+.switch::after{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:var(--text);transition:left .2s}
+.switch.on{background:var(--ok)}.switch.on::after{left:25px}
+.recpill{position:fixed;bottom:max(10px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#e78a6a;color:#fff;font-size:12.5px;font-weight:700;padding:5px 12px;border-radius:99px;z-index:8;display:none}
+.recpill.on{display:block}
 </style>
 </head>
 <body>
@@ -83,9 +90,10 @@ textarea.copy{width:100%;min-height:90px;margin-top:10px;background:var(--card2)
 
 <!-- HOME -->
 <section class="screen on" id="home">
-  <div class="topbar"><div><div class="eyebrow">Фортепиано</div><h1>Тренажёры</h1></div><button class="conn" id="connChip"><span class="dot" id="connDot"></span><span id="connText">Подключить</span></button></div>
+  <div class="topbar"><div><div class="eyebrow">Фортепиано</div><h1>Тренажёры</h1></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><span class="conn" id="metroChip" hidden></span><button class="conn" id="connChip"><span class="dot" id="connDot"></span><span id="connText">Подключить</span></button></div></div>
   <div class="card small" id="connCard"><b id="connTitle">Пианино не подключено</b><div class="muted" id="connSub" style="margin-top:4px">Подключите переходник, включите пианино и нажмите «Подключить».</div>
     <button class="btn primary" id="connectBtn">Подключить пианино</button></div>
+  <div class="card sess"><div><b>Режим занятия</b><span id="sessSub">Записывать всё, что играю, — Claude сопоставит с заданием в приложении</span></div><button class="switch" id="sessSw" aria-label="Режим занятия"></button></div>
   <div class="tiles">
     <button class="tile" data-go="notes"><div class="ic">♩</div><div><b>Ноты с клавиш</b><span>Нота на стане → клавиша</span></div></button>
     <button class="tile" data-go="scales"><div class="ic">〰</div><div><b>Гаммы и ровность</b><span>Темп, ровность, сила звука</span></div></button>
@@ -127,7 +135,7 @@ textarea.copy{width:100%;min-height:90px;margin-top:10px;background:var(--card2)
   <h2>Упражнение</h2><div class="chips" id="exList"></div>
   <h2>Рука</h2><div class="seg" id="hands"><button data-h="R">Правая</button><button data-h="L">Левая</button><button data-h="B">Обе</button></div>
   <h2>Длительность нот</h2><div class="seg" id="values"><button data-v="1">Четверти</button><button data-v="2">Восьмые</button><button data-v="4">Шестнадцатые</button></div>
-  <div class="field"><label>Темп метронома (необязательно)</label><input id="sTarget" inputmode="numeric" placeholder="например, 72"></div>
+  <div class="field"><label>Темп метронома (необязательно — если включён метроном пианино, возьму его темп сам)</label><input id="sTarget" inputmode="numeric" placeholder="например, 72"></div>
   <button class="btn primary" id="sStart">Начать</button>
 </section>
 
@@ -199,6 +207,7 @@ textarea.copy{width:100%;min-height:90px;margin-top:10px;background:var(--card2)
   <button class="btn" id="clearHist"><span class="danger">Очистить историю</span></button>
 </section>
 </div>
+<div class="recpill" id="recPill">● Занятие записывается</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -233,8 +242,19 @@ const diat=s=>{const n=parse(s);return n.oct*7+LETTERS.indexOf(n.letter)};
 let midi=null,inputs=[],simMode=false;
 const listeners=new Set(); // fn({type:'on'|'off'|'pedal', note, vel, val, t})
 function emit(ev){listeners.forEach(f=>{try{f(ev)}catch(e){console.error(e)}})}
+/* piano metronome via MIDI clock (24 ticks per quarter) */
+const metro={bpm:null,ticks:[],hide:null};
+function onClock(t){
+  metro.ticks.push(t); if(metro.ticks.length>25) metro.ticks.shift();
+  if(metro.ticks.length===25){ const b=Math.round(60000/(t-metro.ticks[0])); if(b>=20&&b<=300&&b!==metro.bpm){metro.bpm=b;renderMetro()} }
+  clearTimeout(metro.hide); metro.hide=setTimeout(()=>{metro.bpm=null;metro.ticks=[];renderMetro()},1200);
+}
+function renderMetro(){ const el=$("#metroChip"); if(!el) return; el.hidden=!metro.bpm; el.textContent=metro.bpm?`♩ = ${metro.bpm}`:""; }
 function onMidi(e){
   const d=e.data,s=d[0]&0xf0,t=e.timeStamp||performance.now();
+  if(d[0]===0xF8){onClock(t);return}
+  if(d[0]===0xFC){metro.bpm=null;metro.ticks=[];renderMetro();return}
+  if(d[0]>=0xF0) return;
   if(s===0x90&&d[2]>0) emit({type:"on",note:d[1],vel:d[2],t});
   else if(s===0x80||(s===0x90&&d[2]===0)) emit({type:"off",note:d[1],t});
   else if(s===0xb0&&d[1]===64) emit({type:"pedal",val:d[2],down:d[2]>=64,t});
@@ -245,7 +265,7 @@ function setConn(state,title,sub){
 }
 function bindInputs(){
   inputs=[...midi.inputs.values()]; inputs.forEach(i=>i.onmidimessage=onMidi);
-  if(inputs.length) setConn("ok","Пианино подключено",inputs.map(i=>i.name).join(", "));
+  if(inputs.length){ setConn("ok","Пианино подключено",inputs.map(i=>i.name).join(", ")); if(ls.get("sessOn",false)&&!SESS.on){SESS.on=true;listeners.add(sessListener);wake(true);renderSess();toast("Режим занятия снова включён")} }
   else setConn("bad","Пианино не найдено","Проверьте переходник и что пианино включено, затем нажмите кнопку ещё раз.");
 }
 async function connect(){
@@ -300,7 +320,7 @@ function renderSync(){
 addEventListener("online",syncNow);
 
 /* =================== home =================== */
-const MODNAME={notes:"Ноты",scales:"Гаммы",pedal:"Педаль",recording:"Запись"};
+const MODNAME={notes:"Ноты",scales:"Гаммы",pedal:"Педаль",recording:"Запись",session:"Занятие"};
 function renderHome(){
   $("#homeHist").innerHTML=results.length?results.slice(0,8).map(r=>`<div class="r"><span>${esc(r.date)} · ${esc(MODNAME[r.module]||r.module)} · ${esc(r.title)}</span><span>${esc(r.short||"")}</span></div>`).join(""):`<div class="muted small">Пока пусто.</div>`;
   renderSync();
@@ -321,7 +341,7 @@ function verdict(cls,text){return `<span class="verdict ${cls}">${esc(text)}</sp
 
 /* =================== wake lock =================== */
 let lock=null;
-async function wake(on=true){try{if(on&&!lock&&navigator.wakeLock){lock=await navigator.wakeLock.request("screen");lock.addEventListener("release",()=>lock=null)}if(!on&&lock){await lock.release();lock=null}}catch(e){}}
+async function wake(on=true){if(!on&&SESS.on)return;try{if(on&&!lock&&navigator.wakeLock){lock=await navigator.wakeLock.request("screen");lock.addEventListener("release",()=>lock=null)}if(!on&&lock){await lock.release();lock=null}}catch(e){}}
 
 /* =================== MODULE: notes =================== */
 const DECKS=[
@@ -415,16 +435,16 @@ function renderScalesSetup(){
   $("#values").querySelectorAll("button").forEach(b=>{b.classList.toggle("on",+b.dataset.v===sCfg.val);b.onclick=()=>{sCfg.val=+b.dataset.v;ls.set("scfg",sCfg);renderScalesSetup()}});
   if(sCfg.target)$("#sTarget").value=sCfg.target;
 }
-let SR=null;
+let SR=null,SR_metroAuto=false;
 function sTitle(){const e=EXERCISES.find(x=>x.id===sCfg.ex);return `${e.label}${e.id==="harm2"?" (2 окт.)":""} · ${({R:"правая",L:"левая",B:"обе руки"})[sCfg.hand]}`}
 $("#sStart").onclick=()=>{
-  if(!needPiano())return; sCfg.target=parseInt($("#sTarget").value)||null; ls.set("scfg",sCfg);
+  if(!needPiano())return; sCfg.target=parseInt($("#sTarget").value)||null; SR_metroAuto=!sCfg.target; ls.set("scfg",sCfg);
   SR={notes:[],silence:null}; $("#sTitle").textContent=sTitle(); $("#sCount").textContent="0"; $("#sStrip").textContent="Начинайте, когда готовы";
   listeners.add(sListener); show("slive"); wake();
 };
 function sListener(ev){
   if(ev.type!=="on"||!SR)return;
-  SR.notes.push({n:ev.note,v:ev.vel,t:ev.t}); $("#sCount").textContent=SR.notes.length;
+  SR.notes.push({n:ev.note,v:ev.vel,t:ev.t}); if(metro.bpm) SR.metro=metro.bpm; $("#sCount").textContent=SR.notes.length;
   $("#sStrip").textContent=SR.notes.slice(-10).map(x=>shortMidi(x.n)).join(" ");
   clearTimeout(SR.silence); SR.silence=setTimeout(()=>{if(SR&&SR.notes.length>=6)sFinish()},3000);
 }
@@ -433,6 +453,7 @@ $("#sDone").onclick=()=>{if(!SR||SR.notes.length<4)return toast("Сыграйт�
 function groupOnsets(notes,win=60){const g=[];notes.forEach(x=>{const last=g[g.length-1];if(last&&x.t-last.t0<=win)last.ns.push(x);else g.push({t0:x.t,ns:[x]})});return g}
 function sFinish(){
   listeners.delete(sListener);clearTimeout(SR.silence);wake(false);
+  if(SR_metroAuto&&SR.metro) sCfg.target=SR.metro;
   const ex=EXERCISES.find(e=>e.id===sCfg.ex),notes=SR.notes;SR=null;
   const both=sCfg.hand==="B";
   const groups=both?groupOnsets(notes,70):notes.map(x=>({t0:x.t,ns:[x]}));
@@ -582,11 +603,12 @@ function recListener(ev){
   if(!rec.on)return;
   if(rec.armed&&ev.type==="on"){rec.armed=false;rec.t0=ev.t;$("#rInfo").textContent="Идёт запись…"}
   if(rec.armed)return;
+  if(ev.type==="on"&&metro.bpm!==rec.lastBpm){(rec.metro=rec.metro||[]).push([Math.round(ev.t-rec.t0),metro.bpm]);rec.lastBpm=metro.bpm}
   rec.ev.push([Math.round(ev.t-rec.t0),ev.type==="on"?1:ev.type==="off"?0:2,ev.type==="pedal"?ev.val:ev.note,ev.vel||0]);
   if(ev.type==="on")$("#rInfo").textContent=`Нот: ${rec.ev.filter(e=>e[1]===1).length}`;
 }
 $("#rBtn").onclick=()=>{
-  if(!rec.on){ if(!needPiano())return; Object.assign(rec,{on:true,armed:true,ev:[],t0:0}); listeners.add(recListener); wake();
+  if(!rec.on){ if(!needPiano())return; Object.assign(rec,{on:true,armed:true,ev:[],t0:0,metro:[],lastBpm:undefined}); listeners.add(recListener); wake();
     $("#rBtn").textContent="Остановить"; $("#rBtn").className="btn rec"; $("#rInfo").textContent="Жду первую ноту…"; $("#rTime").textContent="0:00";
     rec.tick=setInterval(()=>{if(!rec.armed)$("#rTime").textContent=mmss(performance.now()-rec.t0)},500); return; }
   stopRecording();
@@ -605,7 +627,7 @@ function stopRecording(){
   // keep only last 10 recordings' events
   recordings.slice(10).forEach(r=>{try{localStorage.removeItem("rec-"+r.id)}catch(e){}});
   const summary=`Запись «${name}»: ${mmss(dur)}, ${ons.length} нот, остановок дольше 1,5 с: ${stops.length}${stops.length?` (${stops.slice(0,5).map(s=>`на ${mmss(s.at)} после ${s.after}, ${sec(s.gap)}`).join("; ")})`:""}.`;
-  const r={v:1,id,module:"recording",date:`${st.date} ${st.time}`,iso:st.iso,title:name,short:`${mmss(dur)} · остановок ${stops.length}`,metrics:[],summary,details:{dur,notes:ons.length,stops,events:ev}};
+  const r={v:1,id,module:"recording",date:`${st.date} ${st.time}`,iso:st.iso,title:name,short:`${mmss(dur)} · остановок ${stops.length}`,metrics:[],summary,details:{dur,notes:ons.length,stops,metronome:rec.metro||[],events:ev}};
   if(!simMode) addResult(r);
   renderRecord();
   const html=`<div class="card" style="margin-top:14px"><span class="muted small">Остановок дольше 1,5 с</span><div class="big">${stops.length}</div>${verdict(stops.length?"mid":"good",stops.length?"есть остановки":"без остановок")}</div>
@@ -630,6 +652,49 @@ function downloadMid(id){
   a.href=URL.createObjectURL(new Blob([bytes],{type:"audio/midi"}));a.download=`${(meta?.name||"запись").replace(/[^\p{L}\p{N} _-]/gu,"").trim()||"zapis"}-${id}.mid`;
   document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
 }
+
+/* =================== session mode: record everything, split by silence =================== */
+const SESS={on:false,seg:null,timer:null,count:0,hiddenAt:null};
+const SPLIT_MS=10000, MIN_NOTES=8;
+function sessListener(ev){
+  if(!SESS.on) return;
+  const now=Date.now();
+  if(!SESS.seg){ if(ev.type!=="on") return; SESS.seg={t0:ev.t,wall0:now,iso:new Date().toISOString(),ev:[],gaps:[]}; }
+  const s=SESS.seg;
+  if(ev.type==="on"&&metro.bpm!==s.lastBpm){(s.metro=s.metro||[]).push([Math.round(ev.t-s.t0),metro.bpm]);s.lastBpm=metro.bpm}
+  s.ev.push([Math.round(ev.t-s.t0),ev.type==="on"?1:ev.type==="off"?0:2,ev.type==="pedal"?ev.val:ev.note,ev.vel||0]);
+  if(ev.type==="on"){ clearTimeout(SESS.timer); SESS.timer=setTimeout(closeSegment,SPLIT_MS); }
+}
+function closeSegment(){
+  clearTimeout(SESS.timer); const s=SESS.seg; SESS.seg=null; if(!s) return;
+  const ons=s.ev.filter(e=>e[1]===1); if(ons.length<MIN_NOTES) return;
+  // trim trailing events after last note-off
+  const dur=s.ev[s.ev.length-1][0];
+  const stops=[];for(let i=1;i<ons.length;i++){const g=ons[i][0]-ons[i-1][0];if(g>=1500)stops.push({at:ons[i-1][0],gap:g})}
+  const lo=Math.min(...ons.map(e=>e[2])),hi=Math.max(...ons.map(e=>e[2]));
+  const st=nowStamp(),id=s.wall0;
+  const r={v:1,id,module:"session",date:`${st.date} ${new Date(s.wall0).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})}`,iso:s.iso,title:"Фрагмент занятия",
+    short:`${mmss(dur)} · ${ons.length} нот`,metrics:[],
+    summary:`Фрагмент занятия: начало ${new Date(s.wall0).toLocaleTimeString("ru-RU")}, ${mmss(dur)}, ${ons.length} нот, диапазон ${nameMidi(lo)} — ${nameMidi(hi)}, пауз ≥ 1,5 с: ${stops.length}${s.metro&&s.metro.some(m=>m[1])?`, метроном пианино: ${[...new Set(s.metro.map(m=>m[1]).filter(Boolean))].join(" → ")}`:""}${s.gaps.length?`, страница скрывалась ${s.gaps.length} раз — возможны пропуски`:""}.`,
+    details:{startMs:s.wall0,endMs:s.wall0+dur,notes:ons.length,stops,gaps:s.gaps,metronome:s.metro||[],events:s.ev}};
+  SESS.count++; renderSess();
+  if(!simMode) addResult(r);
+}
+function renderSess(){
+  $("#sessSw").classList.toggle("on",SESS.on); $("#recPill").classList.toggle("on",SESS.on);
+  $("#sessSub").textContent=SESS.on?`Идёт запись · фрагментов сохранено: ${SESS.count}. Не закрывайте эту страницу`:"Записывать всё, что играю, — Claude сопоставит с заданием в приложении";
+}
+$("#sessSw").onclick=()=>{
+  if(!SESS.on){ if(!needPiano())return; SESS.on=true; listeners.add(sessListener); wake(true); toast("Режим занятия включён — играйте как обычно"); }
+  else { closeSegment(); SESS.on=false; listeners.delete(sessListener); wake(false); toast("Режим занятия выключен"); }
+  ls.set("sessOn",SESS.on); renderSess();
+};
+document.addEventListener("visibilitychange",()=>{
+  if(!SESS.on) return;
+  if(document.visibilityState==="hidden") SESS.hiddenAt=Date.now();
+  else { if(SESS.hiddenAt&&SESS.seg&&Date.now()-SESS.hiddenAt>3000) SESS.seg.gaps.push({at:SESS.hiddenAt-SESS.seg.wall0,ms:Date.now()-SESS.hiddenAt}); SESS.hiddenAt=null; wake(true); }
+});
+addEventListener("pagehide",()=>{ if(SESS.on) closeSegment(); });
 
 /* =================== settings =================== */
 function fillSettings(){$("#ghOwner").value=gh.owner||"";$("#ghRepo").value=gh.repo||"piano-data";$("#ghToken").value=gh.token?"••••••••":"";renderSync()}
